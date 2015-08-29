@@ -1,0 +1,24 @@
+{
+    "name": "simple-helpers/file-mover",
+    "description": "moves file from source directory into suitable directories according to given rules",
+    "type": "library",
+    "license": "LGPL-3.0+",
+    "authors": [
+        {
+            "name": "barantaran",
+            "email": "simple.helpers.code@gmail.com"
+        }
+    ],
+    "minimum-stability": "stable",
+    "require":  {
+        "php": ">=5.4.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "*"
+    },
+    "autoload": {
+        "psr-0": {
+            "SimpleHelpersPHP\\": "src/"
+        }
+    }
+}
