@@ -1,2 +1,2 @@
 #!/bin/bash
-./vendor/phpunit/phpunit/phpunit --bootstrap ./src/autoload.php tests/
+vendor/phpunit/phpunit/phpunit -c phpunit.xml.dist tests/

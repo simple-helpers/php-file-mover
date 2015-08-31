@@ -42,24 +42,34 @@ class FileMover
     private $_suitablePaths;
 
     /**
+     * Available dirs
+     *
+     * @var dirs
+     */
+    private $_dirs;
+
+    /**
      * Target files names
      *
      * @var files
      */
-    private $_targetFiles;
+    private $_files;
 
     /**
     * Construct FileMover providing it with initial data
     *
-    *  @param array  $suitablePaths file moving rules
     *  @param string $sourceDir     source directory name
+    *  @param array  $suitablePaths file moving rules
     *
     *  @return void
     */
-    public function FileMover( $suitablePaths, $sourceDir )
+    function __construct( $sourceDir, $suitablePaths  )
     {
-        $this->_suitablePaths = $suitablePaths;
         $this->_sourceDir = $sourceDir;
+        $this->_suitablePaths = $suitablePaths;
+        if (!$this->_cacheDir()) {
+            return false;
+        }
     }
 
     /**
@@ -67,29 +77,78 @@ class FileMover
      *
      * @return boolean
      */
-    private function _catalogueIt()
+    private function _cacheDir()
     {
-        foreach ( new DirectoryIterator($this->sourceDir) as $fileInfo ) {
-            if ($fileInfo->isDot() || $fileInfo->isDir()) {
-                $this->_targetFiles[] = $fileInfo->getFilename();
+        $directory = new \DirectoryIterator($this->_sourceDir);
+        foreach ( $directory as $fileInfo ) {
+            if (!$fileInfo->isDot()) {
+                if ($fileInfo->isDir()) {
+                    $this->_dirs[]["name"] = $fileInfo->getFilename();
+                } else {
+                    $this->_files[]["name"] = $fileInfo->getFilename();
+                    $lastKey = count($this->_files)-1;
+                    $pathName = $fileInfo->getPathname();
+                    $this->_files[$lastKey]["path-name"] = $pathName;
+                    $this->_files[$lastKey]["base-name"] = pathinfo($pathName,PATHINFO_FILENAME);
+                    $this->_files[$lastKey]["m-name"] = $fileInfo->getMTime();
+                }
             }
         }
-
+        //die(print_r($this->_files));
         return true;
+    }
+
+    /**
+     * Move file from source to destination
+     *
+     * @param string $source      source filename
+     * @param string $destination file name
+     *
+     * @return boolean
+     * */
+    private function _move( $source, $destination )
+    {
+        if (file_exists($source)) {
+            if (copy($source, $destination)) {
+                unlink($source);
+                return true;
+            } else {
+                return false;
+            }
+        }
     }
 
     /**
      * Generate new filepath according to the rules
      *
      * @param string $filename source filename
-     * @param array  $rules    applied rules
      *
      * @return string destination path
      * */
-    private function _generatePath( $filename, $rules )
+    private function _generatePath( $filename )
     {
         $pathGenerated = "";
         return $pathGenerated;
+    }
+
+    /**
+     * Return files discovered
+     *
+     * @return array
+     * */
+    public function getFiles()
+    {
+        return $this->_files;
+    }
+
+    /**
+     * Return dirs discovered
+     *
+     * @return array
+     * */
+    public function getDirs()
+    {
+        return $this->_dirs;
     }
 
     /**
@@ -97,10 +156,16 @@ class FileMover
      *
      * @return boolean
      * */
-    public function moveIt()
+    public function moveIfMatches()
     {
+        foreach ($this->_files as $fileData) {
+            foreach ($this->_dirs as $dirData) {
+                if (stristr($fileData["base-name"], $dirData["name"])) {
+                    $this->_move($fileData["path-name"], $dirData["path-name"]);
+                }
+            }
+        }
         return true;
     }
-
 }
 ?>
