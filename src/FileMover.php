@@ -56,17 +56,27 @@ class FileMover
     private $_files;
 
     /**
+     * Logger callback
+     *
+     * @var logger
+     */
+    private $_logger;
+
+    /**
     * Construct FileMover providing it with initial data
     *
-    *  @param string $sourceDir     source directory name
-    *  @param array  $suitablePaths file moving rules
+    *  @param string   $sourceDir     source directory name
+    *  @param array    $suitablePaths file moving rules
+    *  @param callable $logger        logger callback
     *
     *  @return void
     */
-    function __construct( $sourceDir, $suitablePaths  )
+    function __construct( $sourceDir, $suitablePaths, $logger=null )
     {
+        $ret="g";
         $this->_sourceDir = $sourceDir;
         $this->_suitablePaths = $suitablePaths;
+        $this->_logger = $logger;
         if (!$this->_cacheDir()) {
             return false;
         }
@@ -82,19 +92,23 @@ class FileMover
         $directory = new \DirectoryIterator($this->_sourceDir);
         foreach ( $directory as $fileInfo ) {
             if (!$fileInfo->isDot()) {
+                    $pathName = $fileInfo->getPathname();
                 if ($fileInfo->isDir()) {
                     $this->_dirs[]["name"] = $fileInfo->getFilename();
+                    $lastKey = count($this->_dirs)-1;
+                    $this->_dirs[$lastKey]["path-name"] = $pathName;
                 } else {
                     $this->_files[]["name"] = $fileInfo->getFilename();
                     $lastKey = count($this->_files)-1;
-                    $pathName = $fileInfo->getPathname();
                     $this->_files[$lastKey]["path-name"] = $pathName;
-                    $this->_files[$lastKey]["base-name"] = pathinfo($pathName,PATHINFO_FILENAME);
+                    $this->_files[$lastKey]["base-name"] = pathinfo(
+                        $pathName,
+                        PATHINFO_FILENAME
+                    );
                     $this->_files[$lastKey]["m-name"] = $fileInfo->getMTime();
                 }
             }
         }
-        //die(print_r($this->_files));
         return true;
     }
 
@@ -109,6 +123,9 @@ class FileMover
     private function _move( $source, $destination )
     {
         if (file_exists($source)) {
+            if (is_callable($this->_logger)) {
+                $this->_logger("trying to move {$source} to {$destination}", "INFO");
+            }
             if (copy($source, $destination)) {
                 unlink($source);
                 return true;
@@ -116,19 +133,6 @@ class FileMover
                 return false;
             }
         }
-    }
-
-    /**
-     * Generate new filepath according to the rules
-     *
-     * @param string $filename source filename
-     *
-     * @return string destination path
-     * */
-    private function _generatePath( $filename )
-    {
-        $pathGenerated = "";
-        return $pathGenerated;
     }
 
     /**
@@ -152,15 +156,38 @@ class FileMover
     }
 
     /**
-     * Move files into specified directories
+     * Move files into directories if filename matches part of directory name
      *
      * @return boolean
      * */
-    public function moveIfMatches()
+    public function moveMatches()
     {
         foreach ($this->_files as $fileData) {
             foreach ($this->_dirs as $dirData) {
-                if (stristr($fileData["base-name"], $dirData["name"])) {
+                if (stristr($dirData["name"], $fileData["base-name"])) {
+                    $this->_move(
+                        $fileData["path-name"],
+                        $dirData["path-name"].DIRECTORY_SEPARATOR.$fileData["name"]
+                    );
+                }
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Move files into specified directories if file is older then particular
+     * time
+     *
+     * @param int $time time in seconds
+     *
+     * @return boolean
+     * */
+    public function moveOlderThan($time)
+    {
+        foreach ($this->_files as $fileData) {
+            foreach ($this->_dirs as $dirData) {
+                if (stristr($dirData["name"], $fileData["base-name"])) {
                     $this->_move($fileData["path-name"], $dirData["path-name"]);
                 }
             }

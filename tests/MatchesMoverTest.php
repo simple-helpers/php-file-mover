@@ -1,6 +1,6 @@
 <?php
 // @codingStandardsIgnoreFile
-class FileMoverTest extends PHPUnit_Framework_TestCase
+class MatchesMoverTest extends PHPUnit_Framework_TestCase
 {
     protected static $srcDir;
     protected static $dstDirs;
@@ -32,9 +32,9 @@ class FileMoverTest extends PHPUnit_Framework_TestCase
 
     }
 
-    public function test_moveIt()
+    public function test_moveMatches()
     {
-        $result = self::$mover->moveIfMatches();
+        $result = self::$mover->moveMatches();
 
         $this->assertTrue($result);
     }
@@ -44,12 +44,12 @@ class FileMoverTest extends PHPUnit_Framework_TestCase
         $this->assertEquals(count(self::$files), count(self::$mover->getFiles()));
     }
 
-    public function test_file_1_copied_after_moveIt()
+    public function test_file_1_copied_into_dst()
     {
         $this->assertFileExists( self::$srcDir . DIRECTORY_SEPARATOR . self::$dstDirs[0] . DIRECTORY_SEPARATOR . self::$files[0] );
     }
 
-    public function test_file_2_copied_after_moveIt()
+    public function test_file_2_copied_into_dst()
     {
         $this->assertFileExists( self::$srcDir . DIRECTORY_SEPARATOR . self::$dstDirs[1] . DIRECTORY_SEPARATOR . self::$files[1] );
     }
@@ -66,7 +66,13 @@ class FileMoverTest extends PHPUnit_Framework_TestCase
 
     public static function tearDownAfterClass()
     {
+        foreach( self::$files as $key => $oneFile  ){
+            unlink(self::$srcDir . DIRECTORY_SEPARATOR . self::$dstDirs[$key] . DIRECTORY_SEPARATOR . $oneFile);
+        }
+        foreach( self::$dstDirs as $oneDir  ){
+            rmdir(self::$srcDir. DIRECTORY_SEPARATOR . $oneDir);
+        }
+        rmdir(self::$srcDir);
     }
-
 }
 ?>
