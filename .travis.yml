@@ -20,9 +20,10 @@ php:
   # aliased to a recent hhvm version
   - hhvm
 
-
+install:
+    - ./install.sh
 # omitting "script:" will default to phpunit
-script: "./run-test.sh"
+script: phpunit --configuration phpunit.xml.dist --coverage-text tests/
 
 # configure notifications (email, IRC, campfire etc)
 notifications:
