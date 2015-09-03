@@ -187,9 +187,6 @@ class FileMover
     {
         foreach ($this->_files as $fileData) {
             foreach ($this->_dirs as $dirData) {
-                if (stristr($dirData["name"], $fileData["base-name"])) {
-                    $this->_move($fileData["path-name"], $dirData["path-name"]);
-                }
             }
         }
         return true;
