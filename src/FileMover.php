@@ -124,7 +124,7 @@ class FileMover
     {
         if (file_exists($source)) {
             if (is_callable($this->_logger)) {
-                $this->_logger("trying to move {$source} to {$destination}", "INFO");
+                $this->_logger("tryin to move {$source} to {$destination}", "INFO");
             }
             if (copy($source, $destination)) {
                 unlink($source);
