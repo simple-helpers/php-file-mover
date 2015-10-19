@@ -73,7 +73,7 @@ class FileMover
     */
     function __construct( $sourceDir, $suitablePaths, $logger=null )
     {
-        $ret="g";
+        $ret="ga";
         $this->_sourceDir = $sourceDir;
         $this->_suitablePaths = $suitablePaths;
         $this->_logger = $logger;
