@@ -164,7 +164,7 @@ class FileMover
     {
         foreach ($this->_files as $fileData) {
             foreach ($this->_dirs as $dirData) {
-                if (stristr($dirData["name"], $fileData["base-name"])) {
+                if (strstr($dirData["name"], $fileData["base-name"])) {
                     $this->_move(
                         $fileData["path-name"],
                         $dirData["path-name"].DIRECTORY_SEPARATOR.$fileData["name"]
